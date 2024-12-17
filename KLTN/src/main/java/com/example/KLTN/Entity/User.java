@@ -9,11 +9,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Data
 @Entity
 @Table(name = "account_user")
@@ -32,14 +34,14 @@ public class User extends AbstractEntity<Long> implements UserDetails {
     private LocalDateTime registeredDay;
     @Enumerated(EnumType.STRING)
     private Role role;
-
     private boolean enabled;
-
     @Column
     private LocalDateTime verificationCodeExpiresAt;
-
     @Column
     private String verificationCode;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Score> scores;
 
 
     @Override

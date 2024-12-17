@@ -5,10 +5,10 @@ import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 public class SubjectRequest {
-    @NotBlank
     private Long id;
     private String subjectId;
     private String subjectName;

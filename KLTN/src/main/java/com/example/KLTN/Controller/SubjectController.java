@@ -18,12 +18,12 @@ public class SubjectController {
     private SubjectService subjectService;
 
     @PostMapping("createSubject")
-    public ResponseEntity<SubjectResponseDTO> createSubject(@RequestParam SubjectRequest subjectRequest){
+    public ResponseEntity<SubjectResponseDTO> createSubject(@RequestBody SubjectRequest subjectRequest){
         return subjectService.createSubject(subjectRequest);
     }
 
     @PutMapping("updateSubject")
-    public ResponseEntity<SubjectResponseDTO> updateSubject(@RequestParam SubjectRequest subjectRequest){
+    public ResponseEntity<SubjectResponseDTO> updateSubject(@RequestBody SubjectRequest subjectRequest){
         return subjectService.updateSubject(subjectRequest);
     }
 

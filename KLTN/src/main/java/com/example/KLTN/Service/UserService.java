@@ -39,6 +39,11 @@ public class UserService implements UserDetailsService {
         return currentUser.getRole() == Role.ADMIN;
     }
 
+    public boolean isEditor(){
+        User currentUser = getCurrentUser();
+        return currentUser.getRole() == Role.EDITOR;
+    }
+
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.isAuthenticated()) {

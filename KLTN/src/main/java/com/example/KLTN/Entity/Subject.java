@@ -3,6 +3,7 @@ package com.example.KLTN.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -19,5 +20,8 @@ public class Subject extends AbstractEntity<Long>{
     private String subjectName;
     @Column
     private Integer credit;
+
+    @OneToMany(mappedBy = "subject")
+    private Set<Score> scores;
 }
 
