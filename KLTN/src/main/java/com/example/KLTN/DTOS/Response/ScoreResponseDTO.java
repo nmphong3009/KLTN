@@ -15,4 +15,5 @@ public class ScoreResponseDTO {
     private Double grade;
     private Double gradeFor;
     private String gradeABC;
+    private String semesterName;
 }

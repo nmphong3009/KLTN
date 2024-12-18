@@ -1,6 +1,7 @@
 package com.example.KLTN.Repository;
 
 import com.example.KLTN.Entity.Score;
+import com.example.KLTN.Entity.Semester;
 import com.example.KLTN.Entity.Subject;
 import com.example.KLTN.Entity.User;
 import org.apache.poi.sl.draw.geom.GuideIf;
@@ -12,6 +13,8 @@ import java.util.Optional;
 
 @Repository
 public interface ScoreRepository extends JpaRepository<Score,Long> {
+
+    Optional<Score> findByUserAndSubjectAndSemester(User user, Subject subject, Semester semester);
 
     Optional<Score> findByUserAndSubject(User user, Subject subject);
 
