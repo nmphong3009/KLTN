@@ -14,5 +14,6 @@ public class UserRequestDTO {
     private String studentName;
     private String phoneNumber;
     private String email;
+    private Long majorId;
 }
 

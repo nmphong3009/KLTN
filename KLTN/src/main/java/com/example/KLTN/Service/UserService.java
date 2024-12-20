@@ -1,8 +1,12 @@
 package com.example.KLTN.Service;
 import com.example.KLTN.DTOS.Request.UserRequestDTO;
 import com.example.KLTN.DTOS.Response.UserResponseDTO;
+import com.example.KLTN.Entity.Faculty;
+import com.example.KLTN.Entity.Major;
 import com.example.KLTN.Entity.User;
 import com.example.KLTN.Enum.Role;
+import com.example.KLTN.Repository.FacultyRepository;
+import com.example.KLTN.Repository.MajorRepository;
 import com.example.KLTN.Repository.UserRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -21,8 +25,13 @@ public class UserService implements UserDetailsService {
     @Lazy
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    @Lazy
+    private final MajorRepository majorRepository;
+
+
+    public UserService(UserRepository userRepository, MajorRepository majorRepository) {
         this.userRepository = userRepository;
+        this.majorRepository = majorRepository;
     }
 
     public User findByStudentId(String studentId) {
@@ -68,6 +77,8 @@ public class UserService implements UserDetailsService {
                         .phoneNumber(user.getPhoneNumber())
                         .email(user.getEmail())
                         .id(user.getId())
+                        .majorName(user.getMajor().getMajorName())
+                        .facultyName(user.getMajor().getFaculty().getFacultyName())
                         .build()
         ).toList();
     }
@@ -86,6 +97,8 @@ public class UserService implements UserDetailsService {
                 .id(existingUser.getId())
                 .role(existingUser.getRole())
                 .email(existingUser.getEmail())
+                .majorName(existingUser.getMajor().getMajorName())
+                .facultyName(existingUser.getMajor().getFaculty().getFacultyName())
                 .build(), HttpStatus.OK);
     }
 
@@ -96,6 +109,8 @@ public class UserService implements UserDetailsService {
                 .studentName(getCurrentUser().getStudentName())
                 .phoneNumber(getCurrentUser().getPhoneNumber())
                 .email(getCurrentUser().getEmail())
+                .majorName(getCurrentUser().getMajor().getMajorName())
+                .facultyName(getCurrentUser().getMajor().getFaculty().getFacultyName())
                 .build(), HttpStatus.OK);
     }
 
@@ -115,6 +130,8 @@ public class UserService implements UserDetailsService {
                         .phoneNumber(user.getPhoneNumber())
                         .id(user.getId())
                         .role(user.getRole())
+                        .majorName(user.getMajor().getMajorName())
+                        .facultyName(user.getMajor().getFaculty().getFacultyName())
                         .build()
         ).collect(Collectors.toList());
     }
@@ -125,10 +142,13 @@ public class UserService implements UserDetailsService {
         if (!isAdmin()&&!request.getId().equals(getCurrentUser().getId())){
             throw new RuntimeException("Only admin users can access this resource.");
         }
+        Major major = majorRepository.findById(request.getMajorId())
+                .orElseThrow(() -> new RuntimeException("Major not found  " ));
         existingUser.setStudentId(request.getStudentId());
         existingUser.setStudentName(request.getStudentName());
         existingUser.setPhoneNumber(request.getPhoneNumber());
         existingUser.setEmail(request.getEmail());
+        existingUser.setMajor(major);
         userRepository.save(existingUser);
         return new ResponseEntity<>(UserResponseDTO.builder()
                 .studentId(existingUser.getStudentId())
@@ -137,6 +157,8 @@ public class UserService implements UserDetailsService {
                 .email(existingUser.getEmail())
                 .role(existingUser.getRole())
                 .studentName(existingUser.getStudentName())
+                .majorName(existingUser.getMajor().getMajorName())
+                .facultyName(existingUser.getMajor().getFaculty().getFacultyName())
                 .build(),HttpStatus.OK);
     }
 
@@ -155,6 +177,8 @@ public class UserService implements UserDetailsService {
                 .email(existingUser.getEmail())
                 .role(existingUser.getRole())
                 .studentName(existingUser.getStudentName())
+                .majorName(existingUser.getMajor().getMajorName())
+                .facultyName(existingUser.getMajor().getFaculty().getFacultyName())
                 .build(),HttpStatus.OK);
     }
 

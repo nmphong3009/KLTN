@@ -26,4 +26,8 @@ public class UserResponseDTO {
     private String phoneNumber;
     @JsonProperty("email")
     private String email;
+    @JsonProperty("majorName")
+    private String majorName;
+    @JsonProperty("majorName")
+    private String facultyName;
 }

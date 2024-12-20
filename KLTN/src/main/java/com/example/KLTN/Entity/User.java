@@ -43,6 +43,10 @@ public class User extends AbstractEntity<Long> implements UserDetails {
     @OneToMany(mappedBy = "user")
     private Set<Score> scores;
 
+    @ManyToOne
+    @JoinColumn(name = "major_id")
+    private Major major;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
