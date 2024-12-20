@@ -25,6 +25,8 @@ public class FacultyService {
         if (!userService.isAdmin()) {
             throw new RuntimeException("Only admin users can access this resource.");
         }
+        if (facultyRepository.findByFacultyName(facultyRequest.getFacultyName()).isPresent())
+            throw new RuntimeException("Faculty already exists!");
         Faculty faculty = Faculty.builder()
                 .facultyName(facultyRequest.getFacultyName())
                 .build();
@@ -83,6 +85,7 @@ public class FacultyService {
                 major -> MajorResponse.builder()
                         .id(major.getId())
                         .majorName(major.getMajorName())
+                        .facultyName(faculty.getFacultyName())
                         .build()
         ).toList();
     }

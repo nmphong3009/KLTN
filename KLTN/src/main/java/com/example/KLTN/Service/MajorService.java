@@ -32,6 +32,7 @@ public class MajorService {
                 .majorName(majorRequest.getMajorName())
                 .faculty(faculty)
                 .build();
+        majorRepository.save(major);
         return new ResponseEntity<>(MajorResponse.builder()
                 .id(major.getId())
                 .majorName(major.getMajorName())
