@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -19,4 +21,6 @@ public class SubjectResponseDTO {
     private String subjectName;
     @JsonProperty("credit")
     private Integer credit;
+
+    private List<String> majorName;
 }

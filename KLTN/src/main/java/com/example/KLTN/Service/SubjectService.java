@@ -2,7 +2,11 @@ package com.example.KLTN.Service;
 
 import com.example.KLTN.DTOS.Request.SubjectRequest;
 import com.example.KLTN.DTOS.Response.SubjectResponseDTO;
+import com.example.KLTN.Entity.Major;
+import com.example.KLTN.Entity.MajorSubject;
 import com.example.KLTN.Entity.Subject;
+import com.example.KLTN.Repository.MajorRepository;
+import com.example.KLTN.Repository.MajorSubjectRepository;
 import com.example.KLTN.Repository.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,22 +22,42 @@ import java.util.List;
 public class SubjectService {
     private final UserService userService;
     private final SubjectRepository subjectRepository;
+    private final MajorRepository majorRepository;
+    private final MajorSubjectRepository majorSubjectRepository;
 
-    public ResponseEntity<SubjectResponseDTO> createSubject(SubjectRequest subjectRequest){
+    public ResponseEntity<SubjectResponseDTO> createSubject(SubjectRequest subjectRequest) {
         if (!userService.isAdmin()) {
             throw new RuntimeException("Only admin users can access this resource.");
         }
+        List<Major> majors = majorRepository.findAllById(subjectRequest.getMajorIds());
+
         Subject subject = Subject.builder()
                 .subjectId(subjectRequest.getSubjectId())
                 .subjectName(subjectRequest.getSubjectName())
                 .credit(subjectRequest.getCredit())
                 .build();
+
         subjectRepository.save(subject);
+
+        majors.forEach(major -> {
+            MajorSubject majorSubject = MajorSubject.builder()
+                    .subject(subject)
+                    .major(major)
+                    .build();
+            majorSubjectRepository.save(majorSubject);
+        });
+
+        List<String> majorNames = majors.stream()
+                .map(Major::getMajorName)
+                .collect(Collectors.toList());
+
+        // Trả về SubjectResponseDTO
         return new ResponseEntity<>(SubjectResponseDTO.builder()
                 .subjectId(subject.getSubjectId())
                 .subjectName(subject.getSubjectName())
                 .credit(subject.getCredit())
                 .id(subject.getId())
+                .majorName(majorNames)
                 .build(), HttpStatus.CREATED);
     }
 
