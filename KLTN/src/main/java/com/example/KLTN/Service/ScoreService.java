@@ -64,8 +64,10 @@ public class ScoreService {
         User user = userService.getCurrentUser();
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new RuntimeException("Subject not found"));
-        Score score = scoreRepository.findByUserAndSubject(user, subject)
-                .orElseThrow(() -> new RuntimeException(""));
+        Score score = scoreRepository.findByUserAndSubject(user, subject);
+        if (score == null) {
+            return ResponseEntity.badRequest().body("abc");
+        }
         score.setGrade(grade);
         scoreRepository.save(score);
         return ResponseEntity.ok("Update score successful?");
@@ -179,6 +181,7 @@ public class ScoreService {
         // Lấy thông tin người dùng hiện tại
         User user = userService.getCurrentUser();
         String userName = user.getUsername();
+        String userId = user.getStudentId();
 
         // Lấy danh sách điểm của người dùng
         List<Score> scoreList = scoreRepository.findByUser(user);
@@ -187,110 +190,96 @@ public class ScoreService {
         Map<String, List<Score>> scoresBySemester = scoreList.stream()
                 .collect(Collectors.groupingBy(score -> score.getSemester().getSemesterName()));
 
-        // Sắp xếp các khóa học theo tên kỳ học (sắp xếp theo số)
+        // Sắp xếp các kỳ học theo thứ tự tăng dần
         List<String> sortedSemesterNames = scoresBySemester.keySet().stream()
                 .sorted((semester1, semester2) -> {
-                    // Extract the semester number from the name (e.g., "Semester 1" -> 1)
                     int semester1Number = Integer.parseInt(semester1.replaceAll("\\D+", ""));
                     int semester2Number = Integer.parseInt(semester2.replaceAll("\\D+", ""));
                     return Integer.compare(semester1Number, semester2Number);
                 })
                 .collect(Collectors.toList());
 
-        // Tạo đối tượng tài liệu Word mới
+        // Tạo đối tượng tài liệu Word
         XWPFDocument document = new XWPFDocument();
 
-        // Tạo tiêu đề cho tài liệu
+        // Thiết lập khổ giấy A4 ngang và lề
+        CTSectPr sectPr = document.getDocument().getBody().addNewSectPr();
+        CTPageSz pageSize = sectPr.addNewPgSz();
+        pageSize.setW(BigInteger.valueOf(16840)); // Chiều rộng A4 ngang (twips)
+        pageSize.setH(BigInteger.valueOf(11907)); // Chiều cao A4 ngang (twips)
+        pageSize.setOrient(STPageOrientation.LANDSCAPE); // Đặt khổ ngang
+
+        // Thiết lập lề (lề trái phải 1 cm, lề trên dưới 1 inch)
+        CTPageMar pageMar = sectPr.addNewPgMar();
+        pageMar.setLeft(BigInteger.valueOf(567));   // Lề trái: 1 cm (~567 twips)
+        pageMar.setRight(BigInteger.valueOf(567));  // Lề phải: 1 cm (~567 twips)
+        pageMar.setTop(BigInteger.valueOf(1440));   // Lề trên: 1 inch (~1440 twips)
+        pageMar.setBottom(BigInteger.valueOf(1440));// Lề dưới: 1 inch (~1440 twips)
+
+        // Tiêu đề chính của tài liệu
         XWPFParagraph title = document.createParagraph();
-        title.setAlignment(ParagraphAlignment.CENTER);  // Căn giữa tiêu đề
+        title.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun titleRun = title.createRun();
-        titleRun.setText("Kết quả học");
+        titleRun.setText("KẾT QUẢ HỌC TẬP");
         titleRun.setBold(true);
         titleRun.setFontSize(16);
 
-        // Thêm tên người dùng vào tài liệu
-        XWPFParagraph userParagraph = document.createParagraph();
-        userParagraph.createRun().setText("Họ tên: " + userName);
+        // Thêm thông tin sinh viên
+        XWPFParagraph userInfoParagraph = document.createParagraph();
+        userInfoParagraph.createRun().setText("Sinh viên: " + userName);
 
-        // Lấy GPA và tổng tín chỉ từ phương thức calculateGPA
+        XWPFParagraph userIdParagraph = document.createParagraph();
+        userIdParagraph.createRun().setText("Mã số: " + userId);
+
+        // Lấy GPA và tổng tín chỉ
         ResponseEntity<GpaDTO> gpaResponse = calculateGPA();
         GpaDTO gpaDTO = gpaResponse.getBody();
         BigDecimal gpa = gpaDTO.getGpa();
         int totalCredits = gpaDTO.getTotalCredits();
 
-        // Thêm thông tin GPA và tổng tín chỉ vào tài liệu
+        // Thêm thông tin GPA và tín chỉ
         XWPFParagraph gpaParagraph = document.createParagraph();
-        gpaParagraph.createRun().setText("GPA : " + gpa.toString());
+        gpaParagraph.createRun().setText("GPA: " + gpa);
 
-        XWPFParagraph totalCreditsParagraph = document.createParagraph();
-        totalCreditsParagraph.createRun().setText("Tổng tín chỉ: " + totalCredits);
+        XWPFParagraph creditsParagraph = document.createParagraph();
+        creditsParagraph.createRun().setText("Tổng tín chỉ: " + totalCredits);
 
-        // Lặp qua các kỳ học đã được sắp xếp và xuất từng kỳ vào bảng
+        // Xuất từng kỳ học
         for (String semesterName : sortedSemesterNames) {
-            // Tạo tiêu đề cho từng kỳ học
+            // Tiêu đề kỳ học
             XWPFParagraph semesterTitle = document.createParagraph();
-            semesterTitle.setAlignment(ParagraphAlignment.CENTER);  // Căn giữa tiêu đề
-            XWPFRun semesterTitleRun = semesterTitle.createRun();
-            semesterTitleRun.setText("Kết quả học kỳ " + semesterName);
-            semesterTitleRun.setBold(true);
-            semesterTitleRun.setFontSize(14);
+            semesterTitle.setAlignment(ParagraphAlignment.LEFT);
+            XWPFRun semesterRun = semesterTitle.createRun();
+            semesterRun.setText("Học kỳ: " + semesterName);
+            semesterRun.setBold(true);
+            semesterRun.setFontSize(14);
 
-            // Tạo bảng cho các môn học của kỳ học này
+            // Tạo bảng cho kỳ học này
             XWPFTable table = document.createTable();
 
-            // Thêm hàng tiêu đề cho bảng
+            // Hàng tiêu đề
             XWPFTableRow headerRow = table.getRow(0);
-            XWPFTableCell cell1 = headerRow.getCell(0);
-            cell1.setText("STT");
-            setCellAlignment(cell1);
-            setCellWidth(cell1, 1500); // Set width of the column
+            createHeaderCell(headerRow.getCell(0), "STT", 1000);
+            createHeaderCell(headerRow.addNewTableCell(), "Mã MH", 2000);
+            createHeaderCell(headerRow.addNewTableCell(), "Tên môn học", 6000);
+            createHeaderCell(headerRow.addNewTableCell(), "Số TC", 2500);
+            createHeaderCell(headerRow.addNewTableCell(), "Điểm Hệ 10", 3000);
+            createHeaderCell(headerRow.addNewTableCell(), "Điểm chữ", 3000);
+            createHeaderCell(headerRow.addNewTableCell(), "Điểm Hệ 4", 3000);
 
-            XWPFTableCell cell2 = headerRow.addNewTableCell();
-            cell2.setText("Môn học");
-            setCellAlignment(cell2);
-            setCellWidth(cell2, 3000); // Set width of the column
-
-            XWPFTableCell cell3 = headerRow.addNewTableCell();
-            cell3.setText("Tín chỉ");
-            setCellAlignment(cell3);
-            setCellWidth(cell3, 1500); // Set width of the column
-
-            XWPFTableCell cell4 = headerRow.addNewTableCell();
-            cell4.setText("Điểm (Hệ 4)");
-            setCellAlignment(cell4);
-            setCellWidth(cell4, 2000); // Set width of the column
-
-            XWPFTableCell cell5 = headerRow.addNewTableCell();
-            cell5.setText("Điểm (ABC)");
-            setCellAlignment(cell5);
-            setCellWidth(cell5, 2000); // Set width of the column
-
-            // Thêm các môn học vào bảng cho kỳ học này
+            // Dữ liệu kỳ học
             List<Score> semesterScores = scoresBySemester.get(semesterName);
             int subjectCounter = 1;
 
             for (Score score : semesterScores) {
                 XWPFTableRow row = table.createRow();
-
-                // Cột "STT"
-                row.getCell(0).setText(String.valueOf(subjectCounter++));
-                setCellAlignment(row.getCell(0));
-
-                // Cột "Môn học"
-                row.getCell(1).setText(score.getSubject().getSubjectName());
-                setCellAlignment(row.getCell(1));
-
-                // Cột "Số tín chỉ"
-                row.getCell(2).setText(String.valueOf(score.getSubject().getCredit()));
-                setCellAlignment(row.getCell(2));
-
-                // Cột "Điểm (Hệ 4)"
-                row.getCell(3).setText(String.valueOf(convertTo4Scale(score.getGrade())));
-                setCellAlignment(row.getCell(3));
-
-                // Cột "Điểm (ABC)"
-                row.getCell(4).setText(convertToABC(score.getGrade()));
-                setCellAlignment(row.getCell(4));
+                createContentCell(row.getCell(0), String.valueOf(subjectCounter++));
+                createContentCell(row.getCell(1), score.getSubject().getSubjectId());
+                createContentCell(row.getCell(2), score.getSubject().getSubjectName());
+                createContentCell(row.getCell(3), String.valueOf(score.getSubject().getCredit()));
+                createContentCell(row.getCell(4), String.valueOf(score.getGrade()));
+                createContentCell(row.getCell(5), convertToABC(score.getGrade()));
+                createContentCell(row.getCell(6), String.valueOf(convertTo4Scale(score.getGrade())));
             }
         }
 
@@ -298,29 +287,41 @@ public class ScoreService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         document.write(out);
 
-        // Trả về file .docx dưới dạng ResponseEntity
+        // Trả về file .docx
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Kết quả học.docx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=KetQuaHocTap.docx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(out.toByteArray());
     }
 
-    // Phương thức căn giữa cho ô của bảng
+    // Tạo ô tiêu đề bảng
+    private void createHeaderCell(XWPFTableCell cell, String text, int width) {
+        cell.setText(text);
+        setCellAlignment(cell); // Đặt căn chỉnh cho ô
+        setCellWidth(cell, width); // Đặt chiều rộng cho ô
+    }
+
+    // Tạo ô nội dung bảng
+    private void createContentCell(XWPFTableCell cell, String text) {
+        cell.setText(text);
+        setCellAlignment(cell); // Đặt căn chỉnh cho ô
+    }
+
+    // Căn chỉnh nội dung ô (cả ngang và dọc)
     private void setCellAlignment(XWPFTableCell cell) {
-        XWPFParagraph paragraph = cell.addParagraph(); // Add paragraph if not already present
-        paragraph.setAlignment(ParagraphAlignment.CENTER); // Horizontal alignment (center)
-        paragraph.setVerticalAlignment(TextAlignment.CENTER); // Vertical alignment (center)
+        XWPFParagraph paragraph = cell.getParagraphs().isEmpty() ? cell.addParagraph() : cell.getParagraphs().get(0);
+        paragraph.setAlignment(ParagraphAlignment.CENTER); // Căn giữa ngang
+        paragraph.setVerticalAlignment(TextAlignment.CENTER); // Căn giữa dọc trong đoạn văn
+        cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER); // Căn giữa dọc trong ô
     }
 
-    // Phương thức đặt chiều rộng cho các ô của bảng (không dùng CTTableWidth)
+    // Đặt chiều rộng ô
     private void setCellWidth(XWPFTableCell cell, int width) {
-        // Đặt chiều rộng cho các ô mà không cần dùng CTTableWidth
-        CTTcPr cellProperties = cell.getCTTc().addNewTcPr(); // Access cell properties
-        CTTblWidth tblWidth = cellProperties.addNewTcW(); // Access width property directly
-        tblWidth.setType(STTblWidth.DXA); // Set type to DXA (twips)
-        tblWidth.setW(BigInteger.valueOf(width)); // Set the width in twips (1 twip = 1/1440 inch)
+        CTTcPr cellProperties = cell.getCTTc().addNewTcPr();
+        CTTblWidth tblWidth = cellProperties.addNewTcW();
+        tblWidth.setType(STTblWidth.DXA);
+        tblWidth.setW(BigInteger.valueOf(width));
     }
-
 
     public void importScoresFromDocx(MultipartFile file) throws Exception {
         // Đọc file DOCX
@@ -358,16 +359,27 @@ public class ScoreService {
                     subject.setCredit(credit);
                     subjectRepository.save(subject);
                 }
+                Score score1 = scoreRepository.findByUserAndSubject(currentUser,subject);
+                if (score1 == null) {
+                    // Lưu điểm vào bảng Score
+                    Score score = Score.builder()
+                            .user(currentUser)
+                            .semester(semester)
+                            .subject(subject)
+                            .grade(grade)
+                            .build();
+                    scoreRepository.save(score);
+                } else {
+                    scoreRepository.delete(score1);
+                    Score score = Score.builder()
+                            .user(currentUser)
+                            .semester(semester)
+                            .subject(subject)
+                            .grade(grade)
+                            .build();
+                    scoreRepository.save(score);
+                }
 
-                // Lưu điểm vào bảng Score
-                Score score = Score.builder()
-                        .user(currentUser)
-                        .semester(semester)
-                        .subject(subject)
-                        .grade(grade)
-                        .build();
-
-                scoreRepository.save(score);
             }
         }
     }
