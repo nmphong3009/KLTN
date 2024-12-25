@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/subject")
@@ -35,5 +37,11 @@ public class SubjectController {
     @DeleteMapping("deleteSubject/{id}")
     public ResponseEntity<?> deleteSubject(@PathVariable Long id){
         return ResponseEntity.ok(subjectService.deleteSubject(id));
+    }
+
+    @GetMapping("/admin/getAll")
+    public ResponseEntity<List<SubjectResponseDTO>> getAllSubject(){
+        List<SubjectResponseDTO> subjectResponseDTOList = subjectService.getAllSubject();
+        return ResponseEntity.ok(subjectResponseDTOList);
     }
 }

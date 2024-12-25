@@ -28,6 +28,6 @@ public class UserResponseDTO {
     private String email;
     @JsonProperty("majorName")
     private String majorName;
-    @JsonProperty("majorName")
+    @JsonProperty("facultyName")
     private String facultyName;
 }

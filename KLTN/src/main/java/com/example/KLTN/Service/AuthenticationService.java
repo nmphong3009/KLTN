@@ -5,8 +5,10 @@ import com.example.KLTN.DTOS.Request.ChangePassDTO;
 import com.example.KLTN.DTOS.Request.LoginRequest;
 import com.example.KLTN.DTOS.Request.RegisterRequest;
 import com.example.KLTN.DTOS.Request.VerifyUserDTO;
+import com.example.KLTN.Entity.Major;
 import com.example.KLTN.Entity.User;
 import com.example.KLTN.Enum.Role;
+import com.example.KLTN.Repository.MajorRepository;
 import com.example.KLTN.Repository.UserRepository;
 import jakarta.mail.MessagingException;
 import org.springframework.http.HttpStatus;
@@ -30,14 +32,16 @@ public class AuthenticationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
     private final UserService userService;
+    private final MajorRepository majorRepository;
 
-    public AuthenticationService(UserRepository userRepo, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService, EmailService emailService) {
+    public AuthenticationService(UserRepository userRepo, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService, EmailService emailService, MajorRepository majorRepository) {
         this.userRepository = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.emailService = emailService;
         this.userService = userService;
+        this.majorRepository = majorRepository;
     }
     public ResponseEntity<?> registerUser(RegisterRequest registerRequest) {
         if (userRepository.findByStudentId(registerRequest.getStudentId()).isPresent()) {
@@ -46,6 +50,8 @@ public class AuthenticationService {
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
             return new ResponseEntity<>("Passwords don't match", HttpStatus.BAD_REQUEST);
         }
+        Major major = majorRepository.findById(registerRequest.getMajorId())
+                .orElseThrow(() -> new RuntimeException("Major not found  " ));
         User user = new User();
         user.setStudentId(registerRequest.getStudentId());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
@@ -54,6 +60,9 @@ public class AuthenticationService {
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
         user.setEmail(registerRequest.getEmail());
+        user.setStudentName(registerRequest.getStudentName());
+        user.setPhoneNumber(registerRequest.getPhoneNumber());
+        user.setMajor(major);
         sendVerificationEmail(user);
         userRepository.save(user);
         return ResponseEntity.ok("User registered successfully");

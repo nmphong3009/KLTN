@@ -3,10 +3,12 @@ import com.example.KLTN.DTOS.Request.UserRequestDTO;
 import com.example.KLTN.DTOS.Response.UserResponseDTO;
 import com.example.KLTN.Entity.Faculty;
 import com.example.KLTN.Entity.Major;
+import com.example.KLTN.Entity.Score;
 import com.example.KLTN.Entity.User;
 import com.example.KLTN.Enum.Role;
 import com.example.KLTN.Repository.FacultyRepository;
 import com.example.KLTN.Repository.MajorRepository;
+import com.example.KLTN.Repository.ScoreRepository;
 import com.example.KLTN.Repository.UserRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -28,10 +30,14 @@ public class UserService implements UserDetailsService {
     @Lazy
     private final MajorRepository majorRepository;
 
+    @Lazy
+    private final ScoreRepository scoreRepository;
 
-    public UserService(UserRepository userRepository, MajorRepository majorRepository) {
+
+    public UserService(UserRepository userRepository, MajorRepository majorRepository, ScoreRepository scoreRepository) {
         this.userRepository = userRepository;
         this.majorRepository = majorRepository;
+        this.scoreRepository = scoreRepository;
     }
 
     public User findByStudentId(String studentId) {
@@ -137,18 +143,11 @@ public class UserService implements UserDetailsService {
     }
 
     public ResponseEntity<UserResponseDTO> updateUser(UserRequestDTO request){
-        User existingUser = userRepository.findById(request.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found  " ));
-        if (!isAdmin()&&!request.getId().equals(getCurrentUser().getId())){
-            throw new RuntimeException("Only admin users can access this resource.");
-        }
-        Major major = majorRepository.findById(request.getMajorId())
-                .orElseThrow(() -> new RuntimeException("Major not found  " ));
+        User existingUser = getCurrentUser();
         existingUser.setStudentId(request.getStudentId());
         existingUser.setStudentName(request.getStudentName());
         existingUser.setPhoneNumber(request.getPhoneNumber());
         existingUser.setEmail(request.getEmail());
-        existingUser.setMajor(major);
         userRepository.save(existingUser);
         return new ResponseEntity<>(UserResponseDTO.builder()
                 .studentId(existingUser.getStudentId())
@@ -192,6 +191,14 @@ public class UserService implements UserDetailsService {
         return ResponseEntity.ok("Delete user successfully !");
     }
 
-
-
+    public ResponseEntity<?> updateMajor(Long majorId){
+        User user = getCurrentUser();
+        Major major = majorRepository.findById(majorId)
+                .orElseThrow(() -> new RuntimeException("Major not found " ));
+        user.setMajor(major);
+        userRepository.save(user);
+        List<Score> scoreList = scoreRepository.findByUser(user);
+        scoreRepository.deleteAll(scoreList);
+        return ResponseEntity.ok("Update Major user successfully !");
+    }
 }

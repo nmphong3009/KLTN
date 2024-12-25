@@ -8,12 +8,9 @@ import lombok.*;
 @Setter
 @Builder
 public class UserRequestDTO {
-    @NotBlank
-    private Long id;
     private String studentId;
     private String studentName;
     private String phoneNumber;
     private String email;
-    private Long majorId;
 }
 

@@ -23,4 +23,7 @@ public class SubjectResponseDTO {
     private Integer credit;
 
     private List<String> majorName;
+
+    private boolean hasStudied;
+
 }

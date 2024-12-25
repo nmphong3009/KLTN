@@ -21,6 +21,5 @@ public interface ScoreRepository extends JpaRepository<Score,Long> {
     Score findByUserAndSubject(User user, Subject subject);
 
 
-
     List<Score> findByUser(User user);
 }

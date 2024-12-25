@@ -12,5 +12,4 @@ import java.util.Optional;
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
     @Query("SELECT s FROM Subject s WHERE s.subjectId = :subjectId")
     Subject findBySubjectId(@Param("subjectId") String subjectId);
-
 }

@@ -16,6 +16,10 @@ public class SemesterService {
         if (!userService.isAdmin()) {
             throw new RuntimeException("Only admin users can access this resource.");
         }
+        Semester semester1 = semesterRepository.findBySemesterName(semesterName);
+        if (semester1 != null) {
+            throw new RuntimeException("Kì học đã tồn tại");
+        }
         Semester semester = Semester.builder()
                 .semesterName(semesterName)
                 .build();

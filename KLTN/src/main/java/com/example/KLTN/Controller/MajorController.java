@@ -5,6 +5,7 @@ import com.example.KLTN.DTOS.Request.MajorRequest;
 import com.example.KLTN.DTOS.Response.FacultyResponse;
 import com.example.KLTN.DTOS.Response.MajorResponse;
 import com.example.KLTN.DTOS.Response.SubjectResponseDTO;
+import com.example.KLTN.Entity.Subject;
 import com.example.KLTN.Service.FacultyService;
 import com.example.KLTN.Service.MajorService;
 import lombok.AllArgsConstructor;
@@ -48,6 +49,12 @@ public class MajorController {
         List<SubjectResponseDTO> subjectResponseDTOS = majorService.getAllSubject(majorId);
         return ResponseEntity.ok(subjectResponseDTOS);
     }
+    @GetMapping("/userGetAllSubject")
+    public ResponseEntity<List<SubjectResponseDTO>> userGetAllSubject() {
+        List<SubjectResponseDTO> subjectResponseDTOS = majorService.userGetAllSubject();
+        return ResponseEntity.ok(subjectResponseDTOS);
+    }
+
 
     @PostMapping("/admin/addSubject")
     public ResponseEntity<?> addSubject(@RequestParam Long majorId,@RequestParam Long subjectId){

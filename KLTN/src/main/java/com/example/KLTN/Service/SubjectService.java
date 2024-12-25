@@ -31,14 +31,16 @@ public class SubjectService {
         }
         List<Major> majors = majorRepository.findAllById(subjectRequest.getMajorIds());
 
+        Subject subjectExit = subjectRepository.findBySubjectId(subjectRequest.getSubjectId());
+        if (subjectExit != null) {
+            throw new RuntimeException("SubjectId is not exit");
+        }
         Subject subject = Subject.builder()
                 .subjectId(subjectRequest.getSubjectId())
                 .subjectName(subjectRequest.getSubjectName())
                 .credit(subjectRequest.getCredit())
                 .build();
-
         subjectRepository.save(subject);
-
         majors.forEach(major -> {
             MajorSubject majorSubject = MajorSubject.builder()
                     .subject(subject)
@@ -46,11 +48,9 @@ public class SubjectService {
                     .build();
             majorSubjectRepository.save(majorSubject);
         });
-
         List<String> majorNames = majors.stream()
                 .map(Major::getMajorName)
                 .collect(Collectors.toList());
-
         // Trả về SubjectResponseDTO
         return new ResponseEntity<>(SubjectResponseDTO.builder()
                 .subjectId(subject.getSubjectId())

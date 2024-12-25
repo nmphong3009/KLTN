@@ -55,7 +55,8 @@ public class UserController {
         return ResponseEntity.ok(userService.deleteUser(id));
     }
 
-
-
-
+    @PutMapping("updateMajor")
+    public ResponseEntity<?> updateMajor(Long majorId){
+        return ResponseEntity.ok(userService.updateMajor(majorId));
+    }
 }
