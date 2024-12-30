@@ -102,7 +102,8 @@ public class AuthenticationService {
             throw new RuntimeException("Authentication failed");
         }
         String token = jwtTokenProvider.generateToken(user);
-        return ResponseEntity.ok(Map.of("message", "Login successful", "token", token));
+        String role = user.getRole().toString();
+        return ResponseEntity.ok(Map.of("message", "Login successful", "token", token, "role", role));
     }
 
     public ResponseEntity<?> verifyUser(VerifyUserDTO request) {
