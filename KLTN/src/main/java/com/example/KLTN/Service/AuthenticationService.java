@@ -50,6 +50,9 @@ public class AuthenticationService {
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
             return new ResponseEntity<>("Passwords don't match", HttpStatus.BAD_REQUEST);
         }
+        if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
+            throw new RuntimeException("email already exists!");
+        }
         Major major = majorRepository.findById(registerRequest.getMajorId())
                 .orElseThrow(() -> new RuntimeException("Major not found  " ));
         User user = new User();
