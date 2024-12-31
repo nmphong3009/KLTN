@@ -69,6 +69,7 @@ public class MajorService {
         }
         Major major = majorRepository.findById(majorId)
                 .orElseThrow(()-> new RuntimeException("Major not found"));
+        majorRepository.delete(major);
         return ResponseEntity.ok("Delete Major successful");
     }
 
