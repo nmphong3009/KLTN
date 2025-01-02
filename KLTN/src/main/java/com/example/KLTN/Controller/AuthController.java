@@ -1,14 +1,12 @@
 package com.example.KLTN.Controller;
 
 import com.example.KLTN.Component.JwtTokenProvider;
-import com.example.KLTN.DTOS.Request.ChangePassDTO;
-import com.example.KLTN.DTOS.Request.LoginRequest;
-import com.example.KLTN.DTOS.Request.RegisterRequest;
-import com.example.KLTN.DTOS.Request.VerifyUserDTO;
+import com.example.KLTN.DTOS.Request.*;
 import com.example.KLTN.Service.AuthenticationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +42,10 @@ public class AuthController {
         return ResponseEntity.ok(authenticationService.resendVerificationCode(email));
     }
 
+    @PostMapping("/forgotPassWord")
+    public ResponseEntity<?> forgotPassWord(@RequestBody ForgotPassRequest request){
+        return ResponseEntity.ok(authenticationService.forgotPassWord(request));
+    }
 
 
 }

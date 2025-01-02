@@ -1,10 +1,7 @@
 package com.example.KLTN.Service;
 
 import com.example.KLTN.Component.JwtTokenProvider;
-import com.example.KLTN.DTOS.Request.ChangePassDTO;
-import com.example.KLTN.DTOS.Request.LoginRequest;
-import com.example.KLTN.DTOS.Request.RegisterRequest;
-import com.example.KLTN.DTOS.Request.VerifyUserDTO;
+import com.example.KLTN.DTOS.Request.*;
 import com.example.KLTN.Entity.Major;
 import com.example.KLTN.Entity.User;
 import com.example.KLTN.Enum.Role;
@@ -130,6 +127,44 @@ public class AuthenticationService {
         userRepository.save(user);
         return ResponseEntity.ok("Verification code sent");
     }
+
+    public ResponseEntity<?> forgotPassWord(ForgotPassRequest request){
+        User user = userRepository.findByStudentId(request.getStudentId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with idCard: " + request.getStudentId()));
+        if (user.getEmail().equals(request.getEmail())){
+            String newPassword = generateVerificationCode();
+            sendPassEmail(user, newPassword);
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return ResponseEntity.ok("Mk da duoc gui den Mail cua ban");
+        }
+        return ResponseEntity.badRequest().body("Email khong hop le");
+    }
+
+    private void sendPassEmail(User user, String newPass) { //TODO: Update with company logo
+        String subject = "Send New PassWord";
+        String newPassWord = "New PassWord " + newPass;
+        String htmlMessage = "<html>"
+                + "<body style=\"font-family: Arial, sans-serif;\">"
+                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
+                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
+                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
+                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
+                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + newPassWord + "</p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            // Handle email sending exception
+            e.printStackTrace();
+        }
+    }
+
     private void sendVerificationEmail(User user) { //TODO: Update with company logo
         String subject = "Account Verification";
         String verificationCode = "VERIFICATION CODE " + user.getVerificationCode();
@@ -153,6 +188,7 @@ public class AuthenticationService {
             e.printStackTrace();
         }
     }
+
     private String generateVerificationCode() {
         Random random = new Random();
         int code = random.nextInt(900000) + 100000;

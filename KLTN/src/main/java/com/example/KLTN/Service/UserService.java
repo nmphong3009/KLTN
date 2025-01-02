@@ -147,7 +147,6 @@ public class UserService implements UserDetailsService {
         existingUser.setStudentId(request.getStudentId());
         existingUser.setStudentName(request.getStudentName());
         existingUser.setPhoneNumber(request.getPhoneNumber());
-        existingUser.setEmail(request.getEmail());
         userRepository.save(existingUser);
         return new ResponseEntity<>(UserResponseDTO.builder()
                 .studentId(existingUser.getStudentId())
