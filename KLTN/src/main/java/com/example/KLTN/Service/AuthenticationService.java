@@ -2,6 +2,7 @@ package com.example.KLTN.Service;
 
 import com.example.KLTN.Component.JwtTokenProvider;
 import com.example.KLTN.DTOS.Request.*;
+import com.example.KLTN.DTOS.Response.UserResponseDTO;
 import com.example.KLTN.Entity.Major;
 import com.example.KLTN.Entity.User;
 import com.example.KLTN.Enum.Role;
@@ -40,12 +41,12 @@ public class AuthenticationService {
         this.userService = userService;
         this.majorRepository = majorRepository;
     }
-    public ResponseEntity<?> registerUser(RegisterRequest registerRequest) {
+    public ResponseEntity<UserResponseDTO> registerUser(RegisterRequest registerRequest) {
         if (userRepository.findByStudentId(registerRequest.getStudentId()).isPresent()) {
             throw new RuntimeException("idCard already exists!");
         }
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
-            return new ResponseEntity<>("Passwords don't match", HttpStatus.BAD_REQUEST);
+            throw new RuntimeException("Passwords don't match");
         }
         if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             throw new RuntimeException("email already exists!");
@@ -65,7 +66,9 @@ public class AuthenticationService {
         user.setMajor(major);
         sendVerificationEmail(user);
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        return new ResponseEntity<>(UserResponseDTO.builder()
+                .email(user.getEmail())
+                .build(),HttpStatus.OK);
     }
 
     public ResponseEntity<?> changePass(ChangePassDTO changePassDTO) {

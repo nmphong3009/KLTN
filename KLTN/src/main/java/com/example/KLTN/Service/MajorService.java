@@ -159,7 +159,6 @@ public class MajorService {
         } else {
             throw new RuntimeException("Subject is not already exit");
         }
-
     }
     public ResponseEntity<?> deleteSubject(Long majorId, Long subjectId){
         if (!userService.isAdmin()) {

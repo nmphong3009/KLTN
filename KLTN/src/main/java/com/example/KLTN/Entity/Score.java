@@ -24,6 +24,10 @@ public class Score extends AbstractEntity<Long>{
     @JoinColumn(name = "semester_id")
     private Semester semester;
 
+    @ManyToOne
+    @JoinColumn(name = "lecturer_id")
+    private Lecturer lecturer;
+
     @Column
     private Double grade;
 }

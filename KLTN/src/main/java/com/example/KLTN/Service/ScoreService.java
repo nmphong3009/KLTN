@@ -2,14 +2,8 @@ package com.example.KLTN.Service;
 
 import com.example.KLTN.DTOS.Response.GpaDTO;
 import com.example.KLTN.DTOS.Response.ScoreResponseDTO;
-import com.example.KLTN.Entity.Score;
-import com.example.KLTN.Entity.Semester;
-import com.example.KLTN.Entity.Subject;
-import com.example.KLTN.Entity.User;
-import com.example.KLTN.Repository.ScoreRepository;
-import com.example.KLTN.Repository.SemesterRepository;
-import com.example.KLTN.Repository.SubjectRepository;
-import com.example.KLTN.Repository.UserRepository;
+import com.example.KLTN.Entity.*;
+import com.example.KLTN.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
@@ -39,25 +33,35 @@ public class ScoreService {
     public final UserRepository userRepository;
     public final ScoreRepository scoreRepository;
     public final SemesterRepository semesterRepository;
+    public final LecturerRepository lecturerRepository;
 
 
-    public ResponseEntity<?> addScore(Long subjectId, Double grade, Long semesterId) {
+    public ResponseEntity<?> addScore(Long subjectId, Double grade, Long semesterId, Long lecturerId) {
         User user = userService.getCurrentUser();
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new RuntimeException("Subject not found"));
         Semester semester = semesterRepository.findById(semesterId)
                 .orElseThrow(() -> new RuntimeException("Semester not found"));
+        Lecturer lecturer = lecturerRepository.findById(lecturerId)
+                .orElseThrow(() -> new RuntimeException("Lecturer not found"));
+        List<Lecturer> lecturerList = lecturerRepository.findBySubjectId(subjectId);
         if (scoreRepository.findByUserAndSubjectAndSemester(user, subject, semester).isPresent()) {
             throw new RuntimeException("User has already enrolled in this subject");
         }
-        Score score = Score.builder()
-                .user(user)
-                .subject(subject)
-                .semester(semester)
-                .grade(grade)
-                .build();
-        scoreRepository.save(score);
-        return ResponseEntity.ok("Create score successful?");
+        for (Lecturer l : lecturerList){
+            if (l.equals(lecturer)){
+                Score score = Score.builder()
+                        .user(user)
+                        .subject(subject)
+                        .semester(semester)
+                        .grade(grade)
+                        .lecturer(lecturer)
+                        .build();
+                scoreRepository.save(score);
+                return ResponseEntity.ok("Create score successful?");
+            }
+        }
+        throw new RuntimeException("Giang vien khong day mon hoc nay");
     }
 
     public ResponseEntity<?> updateScore(Long subjectId, Double grade) {

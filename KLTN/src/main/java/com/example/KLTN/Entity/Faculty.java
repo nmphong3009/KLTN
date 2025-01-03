@@ -20,6 +20,4 @@ public class Faculty extends AbstractEntity<Long> {
 
     @OneToMany(mappedBy = "faculty")
     private Set<Major> majors;
-
-
 }

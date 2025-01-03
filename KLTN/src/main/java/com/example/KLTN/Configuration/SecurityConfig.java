@@ -60,8 +60,6 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest()
                         .authenticated()) // Các yêu cầu khác cần xác thực
-
-
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }

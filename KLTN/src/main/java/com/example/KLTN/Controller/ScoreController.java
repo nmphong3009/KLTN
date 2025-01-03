@@ -19,8 +19,8 @@ public class ScoreController {
     private ScoreService scoreService;
 
     @PostMapping("/add/{subjectId}")
-    public ResponseEntity<?> addScore(@PathVariable Long subjectId, @RequestParam Double grade, @RequestParam Long semesterId) {
-        return ResponseEntity.ok(scoreService.addScore(subjectId,grade,semesterId));
+    public ResponseEntity<?> addScore(@PathVariable Long subjectId, @RequestParam Double grade, @RequestParam Long semesterId, @RequestParam Long lecturerId) {
+        return ResponseEntity.ok(scoreService.addScore(subjectId,grade,semesterId,lecturerId));
     }
 
     @PutMapping("/update/{subjectId}")

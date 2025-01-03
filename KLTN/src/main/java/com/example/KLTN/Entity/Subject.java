@@ -26,5 +26,8 @@ public class Subject extends AbstractEntity<Long>{
 
     @OneToMany(mappedBy = "subject")
     private Set<MajorSubject> majorSubjects;
+
+    @ManyToMany(mappedBy = "subjects")
+    private Set<Lecturer> lecturers;
 }
 

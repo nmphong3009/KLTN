@@ -1,10 +1,13 @@
 package com.example.KLTN.Service;
 
 import com.example.KLTN.DTOS.Request.SubjectRequest;
+import com.example.KLTN.DTOS.Response.LecturerResponse;
 import com.example.KLTN.DTOS.Response.SubjectResponseDTO;
+import com.example.KLTN.Entity.Lecturer;
 import com.example.KLTN.Entity.Major;
 import com.example.KLTN.Entity.MajorSubject;
 import com.example.KLTN.Entity.Subject;
+import com.example.KLTN.Repository.LecturerRepository;
 import com.example.KLTN.Repository.MajorRepository;
 import com.example.KLTN.Repository.MajorSubjectRepository;
 import com.example.KLTN.Repository.SubjectRepository;
@@ -24,6 +27,7 @@ public class SubjectService {
     private final SubjectRepository subjectRepository;
     private final MajorRepository majorRepository;
     private final MajorSubjectRepository majorSubjectRepository;
+    private final LecturerRepository lecturerRepository;
 
     public ResponseEntity<SubjectResponseDTO> createSubject(SubjectRequest subjectRequest) {
         if (!userService.isAdmin()) {
@@ -117,5 +121,33 @@ public class SubjectService {
                 .credit(subject.getCredit())
                 .id(subject.getId())
                 .build(), HttpStatus.OK);
+    }
+
+    public List<LecturerResponse> getAlLecturer(Long id){
+        List<Lecturer> lecturers = lecturerRepository.findBySubjectId(id);
+        return lecturers.stream().map(
+                lecturer -> LecturerResponse.builder()
+                        .id(lecturer.getId())
+                        .lecturerId(lecturer.getLecturerId())
+                        .lecturerName(lecturer.getLecturerName())
+                        .lecturerMail(lecturer.getLecturerMail())
+                        .lecturerPhone(lecturer.getLecturerPhone())
+                        .build()
+        ).toList();
+    }
+
+    public ResponseEntity<?> deleteLecturer(Long lecturerId,Long subjectId){
+        if (!userService.isAdmin()) {
+            throw new RuntimeException("Only admin users can access this resource.");
+        }
+        Lecturer lecturer = lecturerRepository.findById(lecturerId)
+                .orElseThrow(() -> new RuntimeException("Lecturer not found"));
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(()-> new RuntimeException("Subject not found"));
+        lecturer.getSubjects().remove(subject);
+        subject.getLecturers().remove(lecturer);
+        lecturerRepository.save(lecturer);
+        subjectRepository.save(subject);
+        return ResponseEntity.ok("Xoa thanh cong");
     }
 }
