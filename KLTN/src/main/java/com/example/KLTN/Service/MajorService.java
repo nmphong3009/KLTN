@@ -133,7 +133,7 @@ public class MajorService {
 
     public boolean checkUserSubject(Subject subject, List<Subject> subjectList){
         for (Subject s : subjectList) {
-            if (s.getId() == subject.getId()) {
+            if (s.getId().equals(subject.getId())) {
                 return true;
             }
         }

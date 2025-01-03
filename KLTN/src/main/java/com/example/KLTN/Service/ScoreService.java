@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -346,7 +347,7 @@ public class ScoreService {
 
         // Lặp qua các dòng trong file và lưu điểm
         for (XWPFTable table : document.getTables()) {
-            // Bỏ qua dòng tiêu đề (STT, Mã môn học, Tên môn học, Tín chỉ, Điểm)
+            // Bỏ qua dòng tiêu đề (STT, Mã môn học, Tên môn học, Tín chỉ, Giảng vien ,Điểm)
             for (int i = 1; i < table.getRows().size(); i++) {
                 XWPFTableRow row = table.getRow(i);
                 String subjectCode = row.getCell(1).getText().trim();
@@ -368,6 +369,7 @@ public class ScoreService {
                 if (lecturer == null) {
                     lecturer = new Lecturer();
                     lecturer.setLecturerName(lecturerName);
+                    lecturer.setSubjects(Collections.singleton(subject));
                     lecturerRepository.save(lecturer);
                 }
 
@@ -378,6 +380,7 @@ public class ScoreService {
                             .user(currentUser)
                             .semester(semester)
                             .subject(subject)
+                            .lecturer(lecturer)
                             .grade(grade)
                             .build();
                     scoreRepository.save(score);
@@ -388,6 +391,7 @@ public class ScoreService {
                             .semester(semester)
                             .subject(subject)
                             .grade(grade)
+                            .lecturer(lecturer)
                             .build();
                     scoreRepository.save(score);
                 }

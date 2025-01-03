@@ -26,4 +26,6 @@ public class SubjectResponseDTO {
 
     private boolean hasStudied;
 
+    private Double averageScore;
+
 }

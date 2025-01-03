@@ -5,8 +5,10 @@ import com.example.KLTN.DTOS.Response.LecturerResponse;
 import com.example.KLTN.DTOS.Response.SubjectResponseDTO;
 import com.example.KLTN.DTOS.Response.UserResponseDTO;
 import com.example.KLTN.Entity.Lecturer;
+import com.example.KLTN.Entity.Score;
 import com.example.KLTN.Entity.Subject;
 import com.example.KLTN.Repository.LecturerRepository;
+import com.example.KLTN.Repository.ScoreRepository;
 import com.example.KLTN.Repository.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ public class LecturerService {
     private final UserService userService;
     private final LecturerRepository lecturerRepository;
     private final SubjectRepository subjectRepository;
+    private final ScoreRepository scoreRepository;
 
     public ResponseEntity<?> create (LecturerRequest request){
         if (!userService.isAdmin()) {
@@ -75,13 +78,23 @@ public class LecturerService {
 
     public List<SubjectResponseDTO> getAllSubject(Long id){
         List<Subject> subjects = subjectRepository.findByLecturerId(id);
+        Lecturer lecturer = lecturerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lecturer not found"));
         return subjects.stream().map(
-                subject -> SubjectResponseDTO.builder()
-                        .id(subject.getId())
-                        .subjectId(subject.getSubjectId())
-                        .subjectName(subject.getSubjectName())
-                        .credit(subject.getCredit())
-                        .build()
+                subject -> {
+                    List<Score> scores = scoreRepository.findByLecturerAndSubject(lecturer,subject);
+                    double averageScore = scores.stream()
+                            .mapToDouble(Score::getGrade) // Lấy giá trị điểm
+                            .average() // Tính trung bình
+                            .orElse(0.0);
+                    return SubjectResponseDTO.builder()
+                            .id(subject.getId())
+                            .subjectId(subject.getSubjectId())
+                            .subjectName(subject.getSubjectName())
+                            .credit(subject.getCredit())
+                            .averageScore(averageScore)
+                            .build();
+                }
         ).toList();
     }
 

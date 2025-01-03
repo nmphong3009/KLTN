@@ -3,14 +3,8 @@ package com.example.KLTN.Service;
 import com.example.KLTN.DTOS.Request.SubjectRequest;
 import com.example.KLTN.DTOS.Response.LecturerResponse;
 import com.example.KLTN.DTOS.Response.SubjectResponseDTO;
-import com.example.KLTN.Entity.Lecturer;
-import com.example.KLTN.Entity.Major;
-import com.example.KLTN.Entity.MajorSubject;
-import com.example.KLTN.Entity.Subject;
-import com.example.KLTN.Repository.LecturerRepository;
-import com.example.KLTN.Repository.MajorRepository;
-import com.example.KLTN.Repository.MajorSubjectRepository;
-import com.example.KLTN.Repository.SubjectRepository;
+import com.example.KLTN.Entity.*;
+import com.example.KLTN.Repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +23,7 @@ public class SubjectService {
     private final MajorRepository majorRepository;
     private final MajorSubjectRepository majorSubjectRepository;
     private final LecturerRepository lecturerRepository;
+    private final ScoreRepository scoreRepository;
 
     public ResponseEntity<SubjectResponseDTO> createSubject(SubjectRequest subjectRequest) {
         if (!userService.isAdmin()) {
@@ -96,9 +91,6 @@ public class SubjectService {
     }
 
     public List<SubjectResponseDTO> getAllSubject(){
-        if (!userService.isAdmin()) {
-            throw new RuntimeException("Only admin users can access this resource.");
-        }
         List<Subject> subjectList = subjectRepository.findAll();
         return subjectList.stream().map(
                 subject -> SubjectResponseDTO.builder()
@@ -111,9 +103,6 @@ public class SubjectService {
     }
 
     public ResponseEntity<SubjectResponseDTO> getSubject(Long id) {
-        if (!userService.isAdmin()) {
-            throw new RuntimeException("Only admin users can access this resource.");
-        }
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Subject not found"));
         return new ResponseEntity<>(SubjectResponseDTO.builder()
@@ -126,14 +115,29 @@ public class SubjectService {
 
     public List<LecturerResponse> getAlLecturer(Long id){
         List<Lecturer> lecturers = lecturerRepository.findBySubjectId(id);
+        Subject subject = subjectRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Subject not found"));
         return lecturers.stream().map(
-                lecturer -> LecturerResponse.builder()
-                        .id(lecturer.getId())
-                        .lecturerId(lecturer.getLecturerId())
-                        .lecturerName(lecturer.getLecturerName())
-                        .lecturerMail(lecturer.getLecturerMail())
-                        .lecturerPhone(lecturer.getLecturerPhone())
-                        .build()
+                lecturer -> {
+                    // Tìm danh sách điểm của giảng viên cho môn học hiện tại
+                    List<Score> scores = scoreRepository.findByLecturerAndSubject(lecturer, subject);
+
+                    // Tính điểm trung bình
+                    double averageScore = scores.stream()
+                            .mapToDouble(Score::getGrade) // Lấy giá trị điểm
+                            .average() // Tính trung bình
+                            .orElse(0.0); // Nếu không có điểm thì trả về 0.0
+
+                    // Tạo LecturerResponse với thông tin và điểm trung bình
+                    return LecturerResponse.builder()
+                            .id(lecturer.getId())
+                            .lecturerId(lecturer.getLecturerId())
+                            .lecturerName(lecturer.getLecturerName())
+                            .lecturerMail(lecturer.getLecturerMail())
+                            .lecturerPhone(lecturer.getLecturerPhone())
+                            .averageScore(averageScore) // Gán điểm trung bình
+                            .build();
+                }
         ).toList();
     }
 

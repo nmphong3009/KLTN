@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 @Service
 public class UserService implements UserDetailsService {
@@ -37,16 +38,12 @@ public class UserService implements UserDetailsService {
     @Lazy
     private final EmailService emailService;
 
-    @Lazy
-    private final AuthenticationService authenticationService;
 
-
-    public UserService(UserRepository userRepository, MajorRepository majorRepository, ScoreRepository scoreRepository, EmailService emailService, AuthenticationService authenticationService) {
+    public UserService(UserRepository userRepository, MajorRepository majorRepository, ScoreRepository scoreRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.majorRepository = majorRepository;
         this.scoreRepository = scoreRepository;
         this.emailService = emailService;
-        this.authenticationService = authenticationService;
     }
 
     public User findByStudentId(String studentId) {
@@ -212,7 +209,7 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<?> changeMailVerify(String verifyCode){
         User user = getCurrentUser();
-        String verifyCodePass = authenticationService.generateVerificationCode();
+        String verifyCodePass = generateVerificationCode();
         sendVerificationEmail(user,verifyCodePass);
         if (verifyCode.equals(verifyCodePass)){
             throw new RuntimeException("VerifyCode is not found");
@@ -222,6 +219,9 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<?> changeMail(String email){
         User user = getCurrentUser();
+        if (userRepository.findByEmail(email).isPresent()){
+            throw new RuntimeException("Email da ton tai");
+        }
         user.setEmail(email);
         userRepository.save(user);
         return ResponseEntity.ok("Change Mail successful");
@@ -248,5 +248,10 @@ public class UserService implements UserDetailsService {
             // Handle email sending exception
             e.printStackTrace();
         }
+    }
+    public String generateVerificationCode() {
+        Random random = new Random();
+        int code = random.nextInt(900000) + 100000;
+        return String.valueOf(code);
     }
 }

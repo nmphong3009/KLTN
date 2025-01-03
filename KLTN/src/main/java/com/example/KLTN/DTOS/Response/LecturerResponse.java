@@ -15,4 +15,5 @@ public class LecturerResponse {
     private String lecturerName;
     private String lecturerPhone;
     private String lecturerMail;
+    private Double averageScore;
 }
