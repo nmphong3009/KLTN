@@ -10,6 +10,7 @@ import com.example.KLTN.Repository.FacultyRepository;
 import com.example.KLTN.Repository.MajorRepository;
 import com.example.KLTN.Repository.ScoreRepository;
 import com.example.KLTN.Repository.UserRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +34,19 @@ public class UserService implements UserDetailsService {
     @Lazy
     private final ScoreRepository scoreRepository;
 
+    @Lazy
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, MajorRepository majorRepository, ScoreRepository scoreRepository) {
+    @Lazy
+    private final AuthenticationService authenticationService;
+
+
+    public UserService(UserRepository userRepository, MajorRepository majorRepository, ScoreRepository scoreRepository, EmailService emailService, AuthenticationService authenticationService) {
         this.userRepository = userRepository;
         this.majorRepository = majorRepository;
         this.scoreRepository = scoreRepository;
+        this.emailService = emailService;
+        this.authenticationService = authenticationService;
     }
 
     public User findByStudentId(String studentId) {
@@ -199,5 +208,45 @@ public class UserService implements UserDetailsService {
         List<Score> scoreList = scoreRepository.findByUser(user);
         scoreRepository.deleteAll(scoreList);
         return ResponseEntity.ok("Update Major user successfully !");
+    }
+
+    public ResponseEntity<?> changeMailVerify(String verifyCode){
+        User user = getCurrentUser();
+        String verifyCodePass = authenticationService.generateVerificationCode();
+        sendVerificationEmail(user,verifyCodePass);
+        if (verifyCode.equals(verifyCodePass)){
+            throw new RuntimeException("VerifyCode is not found");
+        }
+        return ResponseEntity.ok("VerifyCode successful");
+    }
+
+    public ResponseEntity<?> changeMail(String email){
+        User user = getCurrentUser();
+        user.setEmail(email);
+        userRepository.save(user);
+        return ResponseEntity.ok("Change Mail successful");
+    }
+    private void sendVerificationEmail(User user, String verifyCode) { //TODO: Update with company logo
+        String subject = "Account Verification";
+        String verificationCode = "VERIFICATION CODE " + verifyCode;
+        String htmlMessage = "<html>"
+                + "<body style=\"font-family: Arial, sans-serif;\">"
+                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
+                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
+                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
+                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
+                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
+                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + verificationCode + "</p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            // Handle email sending exception
+            e.printStackTrace();
+        }
     }
 }

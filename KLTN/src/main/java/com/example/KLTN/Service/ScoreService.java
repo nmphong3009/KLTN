@@ -352,7 +352,8 @@ public class ScoreService {
                 String subjectCode = row.getCell(1).getText().trim();
                 String subjectName = row.getCell(2).getText().trim();
                 int credit = Integer.parseInt(row.getCell(3).getText().trim());
-                double grade = Double.parseDouble(row.getCell(4).getText().trim());
+                String lecturerName = row.getCell(4).getText().trim();
+                double grade = Double.parseDouble(row.getCell(5).getText().trim());
 
                 // Kiểm tra xem môn học có tồn tại không
                 Subject subject = subjectRepository.findBySubjectId(subjectCode);
@@ -363,6 +364,13 @@ public class ScoreService {
                     subject.setCredit(credit);
                     subjectRepository.save(subject);
                 }
+                Lecturer lecturer = lecturerRepository.findByLecturerName(lecturerName);
+                if (lecturer == null) {
+                    lecturer = new Lecturer();
+                    lecturer.setLecturerName(lecturerName);
+                    lecturerRepository.save(lecturer);
+                }
+
                 Score score1 = scoreRepository.findByUserAndSubject(currentUser,subject);
                 if (score1 == null) {
                     // Lưu điểm vào bảng Score

@@ -7,6 +7,7 @@ import com.example.KLTN.Service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,5 +59,15 @@ public class UserController {
     @PutMapping("updateMajor")
     public ResponseEntity<?> updateMajor(Long majorId){
         return ResponseEntity.ok(userService.updateMajor(majorId));
+    }
+
+    @PostMapping("changeMailVerify")
+    public ResponseEntity<?> changeMailVerify(String verifyCode){
+        return ResponseEntity.ok(userService.changeMailVerify(verifyCode));
+    }
+
+    @PutMapping("changeMail")
+    public ResponseEntity<?> changePass(String email){
+        return ResponseEntity.ok(userService.changeMail(email));
     }
 }

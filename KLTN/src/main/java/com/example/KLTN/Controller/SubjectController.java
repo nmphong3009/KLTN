@@ -57,4 +57,9 @@ public class SubjectController {
     public ResponseEntity<?> deleteLecturer(@RequestParam Long lecturerId,@RequestParam Long subjectId){
         return ResponseEntity.ok(subjectService.deleteLecturer(lecturerId, subjectId));
     }
+
+    @PostMapping("addLecturer")
+    public ResponseEntity<?> addLecturer(@RequestParam Long lecturerId,@RequestParam Long subjectId){
+        return ResponseEntity.ok(subjectService.addLecturer(lecturerId, subjectId));
+    }
 }

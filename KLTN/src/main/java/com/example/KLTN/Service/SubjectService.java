@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -149,5 +150,18 @@ public class SubjectService {
         lecturerRepository.save(lecturer);
         subjectRepository.save(subject);
         return ResponseEntity.ok("Xoa thanh cong");
+    }
+
+    public ResponseEntity<?> addLecturer(Long lecturerId,Long subjectId){
+        if (!userService.isAdmin()) {
+            throw new RuntimeException("Only admin users can access this resource.");
+        }
+        Lecturer lecturer = lecturerRepository.findById(lecturerId)
+                .orElseThrow(() -> new RuntimeException("Lecturer not found"));
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(()-> new RuntimeException("Subject not found"));
+        subject.setLecturers(Collections.singleton(lecturer));
+        subjectRepository.save(subject);
+        return ResponseEntity.ok("Update successful");
     }
 }
