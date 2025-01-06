@@ -26,6 +26,6 @@ public class Lecturer extends AbstractEntity<Long> {
     )
     private Set<Subject> subjects;
 
-    @OneToMany(mappedBy = "lecturer")
+    @OneToMany(mappedBy = "lecturer",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Score> scores;
 }

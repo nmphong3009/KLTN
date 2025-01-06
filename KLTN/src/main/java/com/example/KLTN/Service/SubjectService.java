@@ -11,7 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -86,6 +88,9 @@ public class SubjectService {
         }
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Subject not found"));
+        for (Lecturer lecturer : subject.getLecturers()){
+            lecturer.getSubjects().remove(subject);
+        }
         subjectRepository.delete(subject);
         return ResponseEntity.ok("Delete Subject successful!");
     }
@@ -156,15 +161,22 @@ public class SubjectService {
         return ResponseEntity.ok("Xoa thanh cong");
     }
 
-    public ResponseEntity<?> addLecturer(Long lecturerId,Long subjectId){
+    public ResponseEntity<?> addLecturers(Set<Long> lecturerIds, Long subjectId) {
         if (!userService.isAdmin()) {
             throw new RuntimeException("Only admin users can access this resource.");
         }
-        Lecturer lecturer = lecturerRepository.findById(lecturerId)
-                .orElseThrow(() -> new RuntimeException("Lecturer not found"));
+        Set<Lecturer> lecturers = new HashSet<>();
+        for (Long lecturerId : lecturerIds) {
+            Lecturer lecturer = lecturerRepository.findById(lecturerId)
+                    .orElseThrow(() -> new RuntimeException("Lecturer not found"));
+            lecturers.add(lecturer);
+        }
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(()-> new RuntimeException("Subject not found"));
-        subject.setLecturers(Collections.singleton(lecturer));
+                .orElseThrow(() -> new RuntimeException("Subject not found"));
+        for (Lecturer lecturer : lecturers) {
+            subject.getLecturers().add(lecturer);
+            lecturer.getSubjects().add(subject);
+        }
         subjectRepository.save(subject);
         return ResponseEntity.ok("Update successful");
     }

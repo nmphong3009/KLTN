@@ -57,17 +57,22 @@ public class UserController {
     }
 
     @PutMapping("updateMajor")
-    public ResponseEntity<?> updateMajor(Long majorId){
+    public ResponseEntity<?> updateMajor(@RequestParam Long majorId){
         return ResponseEntity.ok(userService.updateMajor(majorId));
     }
 
     @PostMapping("changeMailVerify")
-    public ResponseEntity<?> changeMailVerify(String verifyCode){
+    public ResponseEntity<?> changeMailVerify(@RequestParam String verifyCode){
         return ResponseEntity.ok(userService.changeMailVerify(verifyCode));
     }
 
     @PutMapping("changeMail")
-    public ResponseEntity<?> changePass(String email){
+    public ResponseEntity<?> changePass(@RequestParam String email){
         return ResponseEntity.ok(userService.changeMail(email));
+    }
+
+    @PostMapping("changeMailRequest")
+    public ResponseEntity<?> ChangeMailRequest(){
+        return ResponseEntity.ok(userService.ChangeMailRequest());
     }
 }

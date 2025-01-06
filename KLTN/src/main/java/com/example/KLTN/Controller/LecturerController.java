@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -41,9 +42,9 @@ public class LecturerController {
         return lecturerService.update(lecturerRequest);
     }
 
-    @PostMapping("addSubject")
-    public ResponseEntity<?> addSubject(@RequestParam Long lecturerId,@RequestParam Long subjectId){
-        return ResponseEntity.ok(lecturerService.addSubject(lecturerId, subjectId));
+    @PostMapping("addSubject/{lecturerId}")
+    public ResponseEntity<?> addSubject(@PathVariable Long lecturerId,@RequestBody Set<Long> subjectIds){
+        return ResponseEntity.ok(lecturerService.addSubject(lecturerId, subjectIds));
     }
 
     @DeleteMapping("deleteSubject")

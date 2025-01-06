@@ -150,7 +150,6 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<UserResponseDTO> updateUser(UserRequestDTO request){
         User existingUser = getCurrentUser();
-        existingUser.setStudentId(request.getStudentId());
         existingUser.setStudentName(request.getStudentName());
         existingUser.setPhoneNumber(request.getPhoneNumber());
         userRepository.save(existingUser);
@@ -207,14 +206,23 @@ public class UserService implements UserDetailsService {
         return ResponseEntity.ok("Update Major user successfully !");
     }
 
+    public ResponseEntity<?> ChangeMailRequest(){
+        User user = getCurrentUser();
+        user.setVerificationCode(generateVerificationCode());
+        userRepository.save(user);
+        sendVerificationEmail(user);
+        return ResponseEntity.ok("Code da gui den mail cua ban");
+    }
+
+
     public ResponseEntity<?> changeMailVerify(String verifyCode){
         User user = getCurrentUser();
-        String verifyCodePass = generateVerificationCode();
-        sendVerificationEmail(user,verifyCodePass);
-        if (verifyCode.equals(verifyCodePass)){
-            throw new RuntimeException("VerifyCode is not found");
+        if (verifyCode.equals(user.getVerificationCode())){
+            user.setVerificationCode(null);
+            userRepository.save(user);
+            return ResponseEntity.ok("VerifyCode successful");
         }
-        return ResponseEntity.ok("VerifyCode successful");
+        throw new RuntimeException("VerifyCode is not found");
     }
 
     public ResponseEntity<?> changeMail(String email){
@@ -226,9 +234,9 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
         return ResponseEntity.ok("Change Mail successful");
     }
-    private void sendVerificationEmail(User user, String verifyCode) { //TODO: Update with company logo
+    private void sendVerificationEmail(User user) { //TODO: Update with company logo
         String subject = "Account Verification";
-        String verificationCode = "VERIFICATION CODE " + verifyCode;
+        String verificationCode = "VERIFICATION CODE " + user.getVerificationCode();
         String htmlMessage = "<html>"
                 + "<body style=\"font-family: Arial, sans-serif;\">"
                 + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"

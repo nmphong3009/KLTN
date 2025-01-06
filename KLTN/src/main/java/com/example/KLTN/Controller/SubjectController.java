@@ -12,6 +12,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -58,8 +59,8 @@ public class SubjectController {
         return ResponseEntity.ok(subjectService.deleteLecturer(lecturerId, subjectId));
     }
 
-    @PostMapping("addLecturer")
-    public ResponseEntity<?> addLecturer(@RequestParam Long lecturerId,@RequestParam Long subjectId){
-        return ResponseEntity.ok(subjectService.addLecturer(lecturerId, subjectId));
+    @PostMapping("addLecturer/{subjectId}")
+    public ResponseEntity<?> addLecturer(@RequestBody Set<Long> lecturerIds, @PathVariable Long subjectId) {
+        return ResponseEntity.ok(subjectService.addLecturers(lecturerIds, subjectId));
     }
 }

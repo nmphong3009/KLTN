@@ -21,13 +21,13 @@ public class Subject extends AbstractEntity<Long>{
     @Column
     private Integer credit;
 
-    @OneToMany(mappedBy = "subject")
+    @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Score> scores;
 
-    @OneToMany(mappedBy = "subject")
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<MajorSubject> majorSubjects;
 
-    @ManyToMany(mappedBy = "subjects")
+    @ManyToMany(mappedBy = "subjects", fetch = FetchType.LAZY)
     private Set<Lecturer> lecturers;
 }
 

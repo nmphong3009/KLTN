@@ -59,6 +59,9 @@ public class LecturerService {
         }
         Lecturer lecturerExit = lecturerRepository.findById(lecturerId)
                 .orElseThrow(() -> new RuntimeException("Lecturer not found"));
+        for (Subject subject : lecturerExit.getSubjects()){
+            subject.getLecturers().remove(lecturerExit);
+        }
         lecturerRepository.delete(lecturerExit);
         return ResponseEntity.ok("Delete successful");
     }
@@ -117,15 +120,22 @@ public class LecturerService {
                 .build(), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> addSubject(Long lecturerId,Long subjectId){
+    public ResponseEntity<?> addSubject(Long lecturerId, Set<Long> subjectIds){
         if (!userService.isAdmin()) {
             throw new RuntimeException("Only admin users can access this resource.");
         }
+        Set<Subject> subjects = new HashSet<>();
+        for (Long subjectId : subjectIds) {
+            Subject subject = subjectRepository.findById(subjectId)
+                    .orElseThrow(() -> new RuntimeException("Subject not found"));
+            subjects.add(subject);
+        }
         Lecturer lecturer = lecturerRepository.findById(lecturerId)
                 .orElseThrow(() -> new RuntimeException("Lecturer not found"));
-        Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(()-> new RuntimeException("Subject not found"));
-        lecturer.setSubjects(Collections.singleton(subject));
+        for (Subject subject : subjects){
+            lecturer.getSubjects().add(subject);
+            subject.getLecturers().add(lecturer);
+        }
         lecturerRepository.save(lecturer);
         return ResponseEntity.ok("Update successful");
     }
