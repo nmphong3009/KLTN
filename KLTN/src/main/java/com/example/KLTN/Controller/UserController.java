@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @PutMapping("changeMail")
-    public ResponseEntity<?> changePass(@RequestParam String email){
+    public ResponseEntity<?> changeMail(@RequestParam String email){
         return ResponseEntity.ok(userService.changeMail(email));
     }
 

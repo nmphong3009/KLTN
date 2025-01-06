@@ -150,6 +150,7 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<UserResponseDTO> updateUser(UserRequestDTO request){
         User existingUser = getCurrentUser();
+        existingUser.setStudentId(request.getStudentId());
         existingUser.setStudentName(request.getStudentName());
         existingUser.setPhoneNumber(request.getPhoneNumber());
         userRepository.save(existingUser);
