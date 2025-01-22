@@ -154,4 +154,16 @@ public class LecturerService {
         subjectRepository.save(subject);
         return ResponseEntity.ok("Xoa thanh cong");
     }
+
+    public ResponseEntity<LecturerResponse> getLecturer(Long id){
+        Lecturer lecturer = lecturerRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Lecturer not found"));
+        return new ResponseEntity<>(LecturerResponse.builder()
+                .id(lecturer.getId())
+                .lecturerId(lecturer.getLecturerId())
+                .lecturerName(lecturer.getLecturerName())
+                .lecturerMail(lecturer.getLecturerMail())
+                .lecturerPhone(lecturer.getLecturerPhone())
+                .build(), HttpStatus.OK);
+    }
 }

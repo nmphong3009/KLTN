@@ -90,6 +90,7 @@ public class ScoreService {
                     String gradeABC = convertToABC(grade); // Chuyển từ hệ 10 sang hệ ABC
 
                     return ScoreResponseDTO.builder()
+                            .id(score.getId())
                             .subjectName(score.getSubject().getSubjectName())
                             .subjectId(score.getSubject().getSubjectId())
                             .credit(score.getSubject().getCredit())
@@ -99,6 +100,13 @@ public class ScoreService {
                             .semesterName(score.getSemester().getSemesterName())
                             .build();
                 }, Collectors.toList())));
+    }
+
+    public ResponseEntity<?> deleteScore(Long id){
+        Score score = scoreRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Score not found"));
+        scoreRepository.delete(score);
+        return ResponseEntity.ok("Delete Score successful!");
     }
 
     public ResponseEntity<GpaDTO> calculateGPA() {

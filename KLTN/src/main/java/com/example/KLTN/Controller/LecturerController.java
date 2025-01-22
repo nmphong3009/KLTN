@@ -51,4 +51,9 @@ public class LecturerController {
     public ResponseEntity<?> deleteSubject(@RequestParam Long lecturerId,@RequestParam Long subjectId){
         return ResponseEntity.ok(lecturerService.deleteSubject(lecturerId, subjectId));
     }
+
+    @GetMapping("getLecturer/{id}")
+    public ResponseEntity<LecturerResponse> getLecturer(@PathVariable Long id){
+        return lecturerService.getLecturer(id);
+    }
 }

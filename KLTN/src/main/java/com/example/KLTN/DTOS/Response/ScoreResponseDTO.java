@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScoreResponseDTO {
+    private Long id;
     private String subjectId;
     private String subjectName;
     private Integer credit;
